@@ -13,6 +13,7 @@ async def created_post(async_client: AsyncClient):
     return await create_post("Test post", async_client)
 
 
+# Tell pytest to use anyio backend for async tests
 @pytest.mark.anyio
 async def test_create_post(async_client: AsyncClient):
     body = "Test post"
