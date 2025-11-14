@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class UserPostIn(BaseModel):
@@ -8,8 +8,9 @@ class UserPostIn(BaseModel):
 class UserPost(UserPostIn):
     id: int
 
-    class Config:
-        orm_mode = True  # return_value.body instead of return_value["body"]
+    model_config = ConfigDict(
+        from_attributes=True  # return_value.body instead of return_value["body"]
+    )
 
 
 class CommentIn(BaseModel):
@@ -20,8 +21,9 @@ class CommentIn(BaseModel):
 class Comment(CommentIn):
     id: int
 
-    class Config:
-        orm_mode = True  # return_value.body instead of return_value["body"]
+    model_config = ConfigDict(
+        from_attributes=True  # return_value.body instead of return_value["body"]
+    )
 
 
 class UserPostWithComments(BaseModel):
