@@ -25,3 +25,17 @@ async def test_create_post(async_client: AsyncClient):
 
     assert response.status_code == 201
     assert {"id": 0, "body": body}.items() <= response.json().items()
+
+
+@pytest.mark.anyio
+async def test_create_post_missing_body(async_client: AsyncClient):
+    response = await async_client.post("/post", json={})
+    assert response.status_code == 422
+
+
+# uses the created_post fixture. Creates a post and then gets all posts.
+@pytest.mark.anyio
+async def test_get_all_posts(async_client: AsyncClient, created_post: dict):
+    response = await async_client.get("/post")
+    assert response.status_code == 200
+    assert [created_post] == response.json()
