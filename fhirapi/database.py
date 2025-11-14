@@ -1,6 +1,7 @@
 import databases
 import sqlalchemy
-from config import config
+
+from fhirapi.config import config
 
 metadata = sqlalchemy.MetaData()
 
