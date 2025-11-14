@@ -2,7 +2,7 @@ from typing import AsyncGenerator, Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 
 from fhirapi.main import app
 from fhirapi.routers.post import comment_table, post_table
@@ -26,6 +26,6 @@ async def db() -> AsyncGenerator:
 
 
 @pytest.fixture()
-async def async_client(client) -> AsyncGenerator:
-    async with AsyncClient(app=app, base_url=client.base_url) as ac:
+async def async_client() -> AsyncGenerator:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
