@@ -1,13 +1,11 @@
-import os
 from typing import AsyncGenerator, Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from httpx import ASGITransport, AsyncClient
+from httpx import AsyncClient, ASGITransport
 
-os.environ["ENV_STATE"] = "test"
-from fhirapi.database import database
 from fhirapi.main import app
+from fhirapi.routers.post import comment_table, post_table
 
 
 @pytest.fixture(scope="session")
@@ -22,14 +20,12 @@ def client() -> Generator:
 
 @pytest.fixture(autouse=True)
 async def db() -> AsyncGenerator:
-    await database.connect()
+    post_table.clear()
+    comment_table.clear()
     yield
-    await database.disconnect()
 
 
 @pytest.fixture()
 async def async_client() -> AsyncGenerator:
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac

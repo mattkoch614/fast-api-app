@@ -1,17 +1,15 @@
 from functools import lru_cache
 from typing import Optional
 
-from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 
 class BaseConfig(BaseSettings):
     ENV_STATE: Optional[str] = None
 
-    model_config = ConfigDict(
-        env_file=".env",
-        extra="ignore",  # Ignore extra fields when reading .env file
-    )
+    class Config:
+        env_file: str = ".env"
+        extra = "ignore"  # Ignore extra fields when reading .env file
 
 
 class GlobalConfig(BaseConfig):
@@ -20,18 +18,21 @@ class GlobalConfig(BaseConfig):
 
 
 class DevConfig(GlobalConfig):
-    model_config = ConfigDict(env_file=".env", extra="ignore", env_prefix="DEV_")
+    class Config:
+        env_prefix: str = "DEV_"
 
 
 class TestConfig(GlobalConfig):
     DATABASE_URL: str = "sqlite:///test.db"
     DB_FORCE_ROLL_BACK: bool = True
 
-    model_config = ConfigDict(env_file=".env", extra="ignore", env_prefix="TEST_")
+    class Config:
+        env_prefix: str = "TEST_"
 
 
 class ProdConfig(GlobalConfig):
-    model_config = ConfigDict(env_file=".env", extra="ignore", env_prefix="PROD_")
+    class Config:
+        env_prefix: str = "PROD_"
 
 
 @lru_cache()
