@@ -8,16 +8,24 @@ def configure_logging() -> None:
         {
             "version": 1,
             "disable_existing_loggers": False,
+            "filters": {
+                # asgi_correlation_id is a library that adds a correlation ID to the logging
+                "correlation_id": {
+                    "()": "asgi_correlation_id.CorrelationIdFilter",
+                    "uuid_length": 8 if isinstance(config, DevConfig) else 32,
+                    "default_value": "-",
+                },
+            },
             "formatters": {
                 "console": {
                     "class": "logging.Formatter",
                     "datefmt": "%Y-%m-%d %H:%M:%S",
-                    "format": "%(name)s:%(lineno)d - %(message)s",
+                    "format": "(%(correlation_id)s) %(name)s:%(lineno)d - %(message)s",
                 },
                 "file": {
                     "class": "logging.Formatter",
                     "datefmt": "%Y-%m-%d %H:%M:%S",
-                    "format": "%(asctime)s.%(msecs)03dZ | %(levelname)-8s | %(name)s:%(lineno)d | %(message)s",
+                    "format": "%(asctime)s.%(msecs)03dZ | %(levelname)-8s | [%(correlation_id)s] %(name)s:%(lineno)d | %(message)s",
                 },
             },
             "handlers": {
@@ -25,6 +33,7 @@ def configure_logging() -> None:
                     "class": "rich.logging.RichHandler",
                     "level": "DEBUG",
                     "formatter": "console",
+                    "filters": ["correlation_id"],
                 },
                 "rotating_file": {
                     "class": "logging.handlers.RotatingFileHandler",
@@ -34,6 +43,7 @@ def configure_logging() -> None:
                     "maxBytes": 1024 * 1024,  # 1MB
                     "backupCount": 5,
                     "encoding": "utf-8",
+                    "filters": ["correlation_id"],
                 },
             },
             "loggers": {
