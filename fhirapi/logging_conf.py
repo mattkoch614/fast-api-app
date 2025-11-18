@@ -74,11 +74,19 @@ def configure_logging() -> None:
                     "encoding": "utf-8",
                     "filters": ["correlation_id", "email_obfuscator"],
                 },
+                "logtail": {
+                    "class": "logtail.LogtailHandler",
+                    "level": "DEBUG",
+                    "formatter": "console",
+                    "source_token": config.LOGTAIL_API_KEY,
+                    "host": "https://s1595814.eu-nbg-2.betterstackdata.com",
+                    "filters": ["correlation_id", "email_obfuscator"],
+                },
             },
             "loggers": {
                 "uvicorn": {"handlers": ["default", "rotating_file"], "level": "INFO"},
                 "fhirapi": {  # root logger for the fhirapi package
-                    "handlers": ["default", "rotating_file"],
+                    "handlers": ["default", "rotating_file", "logtail"],
                     "level": "DEBUG"
                     if isinstance(config, DevConfig)
                     else "INFO",  # Debug in development, INFO otherwise
