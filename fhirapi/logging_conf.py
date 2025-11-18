@@ -28,6 +28,11 @@ class EmailObfuscatorFilter(logging.Filter):
         return True
 
 
+handlers = ["default", "rotating_file"]
+if isinstance(config, DevConfig):
+    handlers.append("logtail")
+
+
 def configure_logging() -> None:
     dictConfig(
         {
@@ -86,7 +91,7 @@ def configure_logging() -> None:
             "loggers": {
                 "uvicorn": {"handlers": ["default", "rotating_file"], "level": "INFO"},
                 "fhirapi": {  # root logger for the fhirapi package
-                    "handlers": ["default", "rotating_file", "logtail"],
+                    "handlers": handlers,
                     "level": "DEBUG"
                     if isinstance(config, DevConfig)
                     else "INFO",  # Debug in development, INFO otherwise
