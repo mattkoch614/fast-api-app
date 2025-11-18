@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: run test stop
+.PHONY: run test stop install install-dev
 
 # Start the FastAPI application locally
 run:
@@ -14,3 +14,10 @@ test:
 stop:
 	pkill -f "uvicorn fhirapi.main:app" || true
 
+# Install production dependencies
+install:
+	uv pip install --requirements requirements.txt
+
+# Install development dependencies
+install-dev:
+	uv pip install --requirements requirements-dev.txt

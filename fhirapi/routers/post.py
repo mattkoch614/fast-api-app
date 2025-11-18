@@ -46,7 +46,6 @@ async def create_comment(comment: CommentIn):
     logger.info("Creating comment")
     post = await find_post(comment.post_id)
     if not post:
-        logger.error(f"Post not found for comment: {comment.post_id}")
         raise HTTPException(status_code=404, detail="Post not found")
     data = comment.model_dump()
     query = comment_table.insert().values(data)
@@ -67,7 +66,6 @@ async def get_post_with_comments(post_id: int):
     logger.info("Fetching post and its comments")
     post = await find_post(post_id)
     if not post:
-        logger.error(f"Post not found for post: {post_id}")
         raise HTTPException(status_code=404, detail="Post not found")
 
     # await is used to wait for the asynchronous function to complete
