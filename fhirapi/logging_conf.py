@@ -1,6 +1,31 @@
+import logging
 from logging.config import dictConfig
 
 from fhirapi.config import DevConfig, config
+
+
+def obfuscated(email: str, obfuscation_length: int) -> str:
+    """
+    Obfuscate the email address by replacing the characters with asterisks.
+    """
+    characters = email[:obfuscation_length]
+    first, last = email.split("@")
+    return characters + ("*" * (len(first) - obfuscation_length)) + "@" + last
+
+
+class EmailObfuscatorFilter(logging.Filter):
+    """
+    Filter to obfuscate the email address in the logging.
+    """
+
+    def __init__(self, name: str = "", obfuscation_length: int = 2) -> None:
+        super().__init__(name)
+        self.obfuscation_length = obfuscation_length
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if "email" in record.__dict__:
+            record.email = obfuscated(record.email, self.obfuscation_length)
+        return True
 
 
 def configure_logging() -> None:
@@ -14,6 +39,10 @@ def configure_logging() -> None:
                     "()": "asgi_correlation_id.CorrelationIdFilter",
                     "uuid_length": 8 if isinstance(config, DevConfig) else 32,
                     "default_value": "-",
+                },
+                "email_obfuscator": {
+                    "()": EmailObfuscatorFilter,
+                    "obfuscation_length": 2 if isinstance(config, DevConfig) else 0,
                 },
             },
             "formatters": {
@@ -33,7 +62,7 @@ def configure_logging() -> None:
                     "class": "rich.logging.RichHandler",
                     "level": "DEBUG",
                     "formatter": "console",
-                    "filters": ["correlation_id"],
+                    "filters": ["correlation_id", "email_obfuscator"],
                 },
                 "rotating_file": {
                     "class": "logging.handlers.RotatingFileHandler",
@@ -43,7 +72,7 @@ def configure_logging() -> None:
                     "maxBytes": 1024 * 1024,  # 1MB
                     "backupCount": 5,
                     "encoding": "utf-8",
-                    "filters": ["correlation_id"],
+                    "filters": ["correlation_id", "email_obfuscator"],
                 },
             },
             "loggers": {
