@@ -1,6 +1,7 @@
 import logging
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 
 from fhirapi.database import comment_table, database, post_table
 from fhirapi.models.post import (
@@ -10,7 +11,8 @@ from fhirapi.models.post import (
     UserPostIn,
     UserPostWithComments,
 )
-from fhirapi.security import get_current_user, oauth2_scheme
+from fhirapi.models.user import User
+from fhirapi.security import get_current_user
 
 router = APIRouter()
 
@@ -25,10 +27,10 @@ async def find_post(post_id: int):
 
 
 @router.post("/post", response_model=UserPost, status_code=201)
-async def create_post(post: UserPostIn, request: Request):
+async def create_post(
+    post: UserPostIn, current_user: Annotated[User, Depends(get_current_user)]
+):
     logger.info("Creating post")
-    token = await oauth2_scheme(request)
-    current_user = await get_current_user(token)  # noqa
     data = post.model_dump()
     query = post_table.insert().values(data)
     logger.debug(query)
@@ -45,10 +47,10 @@ async def get_all_posts():
 
 
 @router.post("/comment", response_model=Comment, status_code=201)
-async def create_comment(comment: CommentIn, request: Request):
+async def create_comment(
+    comment: CommentIn, current_user: Annotated[User, Depends(get_current_user)]
+):
     logger.info("Creating comment")
-    token = await oauth2_scheme(request)
-    current_user = await get_current_user(token)  # noqa
     post = await find_post(comment.post_id)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
