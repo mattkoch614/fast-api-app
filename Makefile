@@ -7,8 +7,9 @@ run:
 	source .venv/bin/activate && uvicorn fhirapi.main:app --reload
 
 # Run tests
+# Usage: make test ARGS="-k test_get_all_posts"
 test:
-	source .venv/bin/activate && pytest
+	source .venv/bin/activate && pytest $(ARGS)
 
 # Stop the running FastAPI application
 stop:
