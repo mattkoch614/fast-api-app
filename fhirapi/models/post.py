@@ -7,6 +7,7 @@ class UserPostIn(BaseModel):
 
 class UserPost(UserPostIn):
     id: int
+    user_id: int
 
     model_config = ConfigDict(
         from_attributes=True  # return_value.body instead of return_value["body"]
@@ -20,6 +21,7 @@ class CommentIn(BaseModel):
 
 class Comment(CommentIn):
     id: int
+    user_id: int
 
     model_config = ConfigDict(
         from_attributes=True  # return_value.body instead of return_value["body"]
