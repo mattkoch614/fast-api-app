@@ -26,12 +26,16 @@ def access_token_expire_minutes() -> int:
     return 30
 
 
+def confirmation_token_expire_minutes() -> int:
+    return 1440  # 1 day
+
+
 def create_access_token(email: str):
     logger.debug("Creating access token for email: %s", extra={"email": email})
     expire = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
         minutes=access_token_expire_minutes()
     )
-    jwt_data = {"sub": email, "exp": expire}
+    jwt_data = {"sub": email, "exp": expire, "type": "access"}
     encoded_jwt = jwt.encode(jwt_data, key=SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
