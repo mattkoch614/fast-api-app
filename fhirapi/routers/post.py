@@ -31,7 +31,7 @@ async def create_post(
     post: UserPostIn, current_user: Annotated[User, Depends(get_current_user)]
 ):
     logger.info("Creating post")
-    data = post.model_dump()
+    data = {**post.model_dump(), "user_id": current_user.id}
     query = post_table.insert().values(data)
     logger.debug(query)
     last_record_id = await database.execute(query)
@@ -54,7 +54,7 @@ async def create_comment(
     post = await find_post(comment.post_id)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
-    data = comment.model_dump()
+    data = {**comment.model_dump(), "user_id": current_user.id}
     query = comment_table.insert().values(data)
     last_record_id = await database.execute(query)
     return {**data, "id": last_record_id}
