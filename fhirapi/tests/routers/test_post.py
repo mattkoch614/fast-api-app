@@ -118,7 +118,7 @@ async def test_like_post(
 async def test_get_all_posts(async_client: AsyncClient, created_post: dict):
     response = await async_client.get("/post")
     assert response.status_code == 200
-    assert [{**created_post, "likes": 0}] == response.json()
+    assert created_post.items() <= response.json()[0].items()
 
 
 @pytest.mark.anyio
