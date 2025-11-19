@@ -3,7 +3,8 @@ import pytest
 from fhirapi import security
 
 
-def test_password_hash():
+@pytest.mark.anyio
+async def test_password_hash():
     password = "password"
     assert security.verify_password(password, security.get_password_hash(password))
 
