@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, status
 
 from fhirapi.database import database, user_table
 from fhirapi.models.user import UserIn
-from fhirapi.security import get_user
+from fhirapi.security import get_password_hash, get_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -18,8 +18,9 @@ async def register(user: UserIn):
             detail="A user with this email already exists",
         )
 
-    # This is a very bad idea! We should use a hashing library like bcrypt.
-    query = user_table.insert().values(email=user.email, password=user.password)
+    hashed_password = get_password_hash(user.password)
+
+    query = user_table.insert().values(email=user.email, password=hashed_password)
     logger.debug(query)
     await database.execute(query)
     return {"detail": "User registered successfully"}
