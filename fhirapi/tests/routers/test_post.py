@@ -26,6 +26,17 @@ async def create_comment(
     return response.json()
 
 
+async def like_post(
+    post_id: int, async_client: AsyncClient, logged_in_token: str
+) -> dict:
+    response = await async_client.post(
+        "/like",
+        json={"post_id": post_id},
+        headers={"Authorization": f"Bearer {logged_in_token}"},
+    )
+    return response.json()
+
+
 # Fixture to create a post, no autouse=True because it's used in other tests
 @pytest.fixture()
 async def created_post(async_client: AsyncClient, logged_in_token: str):
@@ -88,6 +99,18 @@ async def test_create_post_w_expired_token(
     )
     assert response.status_code == 401
     assert "Token has expired" in response.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_like_post(
+    async_client: AsyncClient, created_post: dict, logged_in_token: str
+):
+    response = await async_client.post(
+        "/like",
+        json={"post_id": created_post["id"]},
+        headers={"Authorization": f"Bearer {logged_in_token}"},
+    )
+    assert response.status_code == 201
 
 
 # uses the created_post fixture. Creates a post and then gets all posts.
