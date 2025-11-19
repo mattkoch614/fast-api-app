@@ -20,7 +20,7 @@ def client() -> Generator:
     yield TestClient(app)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 async def db() -> AsyncGenerator:
     await database.connect()
     yield
@@ -28,7 +28,7 @@ async def db() -> AsyncGenerator:
 
 
 @pytest.fixture()
-async def async_client() -> AsyncGenerator:
+async def async_client(db) -> AsyncGenerator:
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
@@ -46,12 +46,23 @@ async def registered_user(async_client: AsyncClient) -> dict:
 
 
 @pytest.fixture()
-async def logged_in_token(async_client: AsyncClient, registered_user: dict) -> str:
+async def confirmed_user(registered_user: dict) -> dict:
+    query = (
+        user_table.update()
+        .where(user_table.c.email == registered_user["email"])
+        .values(confirmed=True)
+    )
+    await database.execute(query)
+    return registered_user
+
+
+@pytest.fixture()
+async def logged_in_token(async_client: AsyncClient, confirmed_user: dict) -> str:
     response = await async_client.post(
         "/token",
         data={
-            "username": registered_user["email"],  # OAuth2 uses "username" field
-            "password": registered_user["password"],
+            "username": confirmed_user["email"],  # OAuth2 uses "username" field
+            "password": confirmed_user["password"],
         },
     )
     return response.json()["access_token"]
