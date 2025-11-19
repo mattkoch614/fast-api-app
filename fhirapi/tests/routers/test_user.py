@@ -56,12 +56,27 @@ async def test_confirm_user_expired_token(async_client: AsyncClient, mocker):
 
 
 @pytest.mark.anyio
-async def test_login_user(async_client: AsyncClient, registered_user: dict):
+async def test_login_user_not_confirmed(
+    async_client: AsyncClient, registered_user: dict
+):
     response = await async_client.post(
         "/token",
         data={
             "username": registered_user["email"],  # OAuth2 uses "username" field
             "password": registered_user["password"],
+        },
+    )
+    assert response.status_code == 401
+    assert "User has not confirmed email" in response.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_login_user(async_client: AsyncClient, confirmed_user: dict):
+    response = await async_client.post(
+        "/token",
+        data={
+            "username": confirmed_user["email"],  # OAuth2 uses "username" field
+            "password": confirmed_user["password"],
         },
     )
     assert response.status_code == 200
