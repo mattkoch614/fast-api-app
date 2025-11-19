@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 
+from fhirapi import tasks
 from fhirapi.database import database, user_table
 from fhirapi.models.user import UserIn
 from fhirapi.security import (
@@ -32,12 +33,14 @@ async def register(user: UserIn, request: Request):
     query = user_table.insert().values(email=user.email, password=hashed_password)
     logger.debug(query)
     await database.execute(query)
-    return {
-        "detail": "User registered successfully. Please confirm your email.",
-        "confirmation_url": request.url_for(
+
+    await tasks.send_user_registration_email(
+        user.email,
+        confirmation_url=request.url_for(
             "confirm_email", token=create_confirmation_token(user.email)
         ),
-    }
+    )
+    return {"detail": "User registered successfully. Please confirm your email."}
 
 
 @router.post("/token")
