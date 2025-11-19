@@ -40,6 +40,16 @@ def create_access_token(email: str):
     return encoded_jwt
 
 
+def create_confirmation_token(email: str):
+    logger.debug("Creating access token for email: %s", extra={"email": email})
+    expire = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
+        minutes=confirmation_token_expire_minutes()
+    )
+    jwt_data = {"sub": email, "exp": expire, "type": "confirmation"}
+    encoded_jwt = jwt.encode(jwt_data, key=SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
 def get_password_hash(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
@@ -74,7 +84,9 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         email = payload.get("sub")
         if email is None:
             raise credentials_exception
-
+        token_type = payload.get("type")
+        if token_type is None or token_type != "access":
+            raise credentials_exception
     except ExpiredSignatureError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
