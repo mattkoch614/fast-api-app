@@ -29,7 +29,11 @@ async def test_register_user_already_exists(async_client: AsyncClient):
 @pytest.mark.anyio
 async def test_login_user_not_exists(async_client: AsyncClient):
     response = await async_client.post(
-        "/token", json={"email": "test@example.com", "password": "1234"}
+        "/token",
+        data={
+            "username": "test@example.com",
+            "password": "1234",
+        },  # Use "data" not "json", and "username" not "email"
     )
     assert response.status_code == 401
 
@@ -38,8 +42,8 @@ async def test_login_user_not_exists(async_client: AsyncClient):
 async def test_login_user(async_client: AsyncClient, registered_user: dict):
     response = await async_client.post(
         "/token",
-        json={
-            "email": registered_user["email"],
+        data={
+            "username": registered_user["email"],  # OAuth2 uses "username" field
             "password": registered_user["password"],
         },
     )
