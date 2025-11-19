@@ -4,7 +4,12 @@ from fastapi import APIRouter, HTTPException, status
 
 from fhirapi.database import database, user_table
 from fhirapi.models.user import UserIn
-from fhirapi.security import get_password_hash, get_user
+from fhirapi.security import (
+    authenticate_user,
+    create_access_token,
+    get_password_hash,
+    get_user,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -24,3 +29,10 @@ async def register(user: UserIn):
     logger.debug(query)
     await database.execute(query)
     return {"detail": "User registered successfully"}
+
+
+@router.post("/token")
+async def login(user: UserIn):
+    user = await authenticate_user(user.email, user.password)
+    access_token = create_access_token(user.email)
+    return {"access_token": access_token, "token_type": "bearer"}
