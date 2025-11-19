@@ -20,7 +20,7 @@ def client() -> Generator:
     yield TestClient(app)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 async def db() -> AsyncGenerator:
     await database.connect()
     yield
@@ -28,7 +28,7 @@ async def db() -> AsyncGenerator:
 
 
 @pytest.fixture()
-async def async_client() -> AsyncGenerator:
+async def async_client(db) -> AsyncGenerator:
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
