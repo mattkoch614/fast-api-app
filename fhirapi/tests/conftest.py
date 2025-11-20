@@ -1,9 +1,10 @@
 import os
 from typing import AsyncGenerator, Generator
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 from fastapi.testclient import TestClient
-from httpx import ASGITransport, AsyncClient
+from httpx import ASGITransport, AsyncClient, Request, Response
 
 os.environ["ENV_STATE"] = "test"
 from fhirapi.database import database, user_table
@@ -20,7 +21,7 @@ def client() -> Generator:
     yield TestClient(app)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 async def db() -> AsyncGenerator:
     await database.connect()
     yield
@@ -28,7 +29,7 @@ async def db() -> AsyncGenerator:
 
 
 @pytest.fixture()
-async def async_client() -> AsyncGenerator:
+async def async_client(db) -> AsyncGenerator:
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
@@ -46,12 +47,35 @@ async def registered_user(async_client: AsyncClient) -> dict:
 
 
 @pytest.fixture()
-async def logged_in_token(async_client: AsyncClient, registered_user: dict) -> str:
+async def confirmed_user(registered_user: dict) -> dict:
+    query = (
+        user_table.update()
+        .where(user_table.c.email == registered_user["email"])
+        .values(confirmed=True)
+    )
+    await database.execute(query)
+    return registered_user
+
+
+@pytest.fixture()
+async def logged_in_token(async_client: AsyncClient, confirmed_user: dict) -> str:
     response = await async_client.post(
         "/token",
         data={
-            "username": registered_user["email"],  # OAuth2 uses "username" field
-            "password": registered_user["password"],
+            "username": confirmed_user["email"],  # OAuth2 uses "username" field
+            "password": confirmed_user["password"],
         },
     )
     return response.json()["access_token"]
+
+
+@pytest.fixture(autouse=True)
+def mock_httpx_client(mocker):
+    mocked_client = mocker.patch("fhirapi.tasks.httpx.AsyncClient")
+
+    mocked_async_client = Mock()
+    response = Response(status_code=200, content="", request=Request("POST", "//"))
+    mocked_async_client.post = AsyncMock(return_value=response)
+    mocked_client.return_value.__aenter__.return_value = mocked_async_client
+
+    return mocked_async_client
