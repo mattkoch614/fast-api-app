@@ -33,4 +33,7 @@ async def upload_file(file: UploadFile):
             detail="Error uploading file",
         )
 
-    return {"detail": f"Successfully uploaded file {file.filename} to B2 as {file_url}"}
+    return {
+        "file_url": file_url,
+        "detail": f"Successfully uploaded file {file.filename} to B2",
+    }
