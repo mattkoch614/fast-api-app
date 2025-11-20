@@ -35,3 +35,29 @@ async def test_generate_cute_creature_api_success(mock_httpx_client):
         "A cute newfoundland puppy with a pink bow on its head"
     )
     assert result == json_data
+
+
+@pytest.mark.anyio
+async def test_generate_cute_creature_api_error(mock_httpx_client):
+    mock_httpx_client.post.return_value = httpx.Response(
+        status_code=500, content="", request=httpx.Request("POST", "//")
+    )
+
+    with pytest.raises(
+        APIResponseError, match="API request failed with status code: 500"
+    ):
+        await _generate_cute_creature_api(
+            "A cute newfoundland puppy with a pink bow on its head"
+        )
+
+
+@pytest.mark.anyio
+async def test_generate_cute_creature_api_json_error(mock_httpx_client):
+    mock_httpx_client.post.return_value = httpx.Response(
+        status_code=200, content="Not JSON", request=httpx.Request("POST", "//")
+    )
+
+    with pytest.raises(APIResponseError, match="API response parsing failed"):
+        await _generate_cute_creature_api(
+            "A cute newfoundland puppy with a pink bow on its head"
+        )

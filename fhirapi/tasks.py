@@ -72,9 +72,7 @@ async def _generate_cute_creature_api(prompt: str):
                 f"API request failed with status code: {err.response.status_code}"
             ) from err
         except (JSONDecodeError, TypeError) as err:
-            raise APIResponseError(
-                f"API request failed with invalid response: {err}"
-            ) from err
+            raise APIResponseError("API response parsing failed") from err
 
 
 async def generate_and_add_to_post(
