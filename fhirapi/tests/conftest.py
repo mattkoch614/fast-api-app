@@ -9,6 +9,7 @@ from httpx import ASGITransport, AsyncClient, Request, Response
 os.environ["ENV_STATE"] = "test"
 from fhirapi.database import database, user_table
 from fhirapi.main import app
+from fhirapi.tests.helpers import create_post  # noqa: E402
 
 
 @pytest.fixture(scope="session")
@@ -24,7 +25,7 @@ def client() -> Generator:
 @pytest.fixture()
 async def db() -> AsyncGenerator:
     await database.connect()
-    yield
+    yield database
     await database.disconnect()
 
 
@@ -55,6 +56,12 @@ async def confirmed_user(registered_user: dict) -> dict:
     )
     await database.execute(query)
     return registered_user
+
+
+# Fixture to create a post, no autouse=True because it's used in other tests
+@pytest.fixture()
+async def created_post(async_client: AsyncClient, logged_in_token: str):
+    return await create_post("Test Post", async_client, logged_in_token)
 
 
 @pytest.fixture()
