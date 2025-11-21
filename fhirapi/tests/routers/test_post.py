@@ -5,6 +5,14 @@ from fhirapi import security
 from fhirapi.tests.helpers import create_comment, create_post, like_post
 
 
+@pytest.fixture()
+def mock_generate_cute_creature_api(mocker):
+    return mocker.patch(
+        "fhirapi.tasks._generate_cute_creature_api",
+        return_value={"output_url": "https://fakeurl.cm/image.jpg"},
+    )
+
+
 # Fixture to create a comment, which in turn uses the created_post fixture
 @pytest.fixture()
 async def created_comment(
@@ -35,6 +43,28 @@ async def test_create_post(
         "user_id": confirmed_user["id"],
         "image_url": None,
     }.items() <= response.json().items()
+
+
+@pytest.mark.anyio
+async def test_create_post_with_prompt(
+    async_client: AsyncClient,
+    logged_in_token: str,
+    mock_generate_cute_creature_api,
+):
+    body = "Test post"
+    response = await async_client.post(
+        "/post?prompt=A cute newfoundland puppy with a pink bow on its head",
+        json={"body": body},
+        headers={"Authorization": f"Bearer {logged_in_token}"},
+    )
+    assert response.status_code == 201
+
+    assert {
+        "id": 1,
+        "body": body,
+        "image_url": None,
+    }.items() <= response.json().items()
+    mock_generate_cute_creature_api.assert_called()
 
 
 @pytest.mark.anyio
