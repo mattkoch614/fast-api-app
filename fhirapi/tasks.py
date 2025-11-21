@@ -59,15 +59,18 @@ async def _generate_cute_creature_api(prompt: str):
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(
-                "https://api.deepai.org/api/text-to-image",
-                json={"prompt": prompt},
-                headers={"Authorization": f"Bearer {config.DEEPAI_API_KEY}"},
+                "https://api.deepai.org/api/text2img",
+                json={"text": prompt},
+                headers={"api-key": config.DEEPAI_API_KEY},
                 timeout=60,
             )
-            logger.debug(response)
+            logger.debug(f"Response status: {response.status_code}")
+            logger.debug(f"Response body: {response.text}")
             response.raise_for_status()
             return response.json()
         except httpx.HTTPStatusError as err:
+            error_body = err.response.text if err.response else "No response body"
+            logger.error(f"DeepAI API error: {err.response.status_code} - {error_body}")
             raise APIResponseError(
                 f"API request failed with status code: {err.response.status_code}"
             ) from err
