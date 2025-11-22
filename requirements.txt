@@ -16,3 +16,4 @@ aiofiles
 b2sdk
 httpx
 psycopg2
+sentry-sdk[fastapi]
