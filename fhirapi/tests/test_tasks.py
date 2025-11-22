@@ -76,7 +76,7 @@ async def test_generate_and_add_to_post_success(
         status_code=200, json=json_data, request=httpx.Request("POST", "//")
     )
 
-    result = await generate_and_add_to_post(
+    await generate_and_add_to_post(
         confirmed_user["email"],
         created_post["id"],
         "/post/1",

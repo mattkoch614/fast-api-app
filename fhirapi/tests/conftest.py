@@ -7,8 +7,8 @@ from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient, Request, Response
 
 os.environ["ENV_STATE"] = "test"
-from fhirapi.database import database, user_table
-from fhirapi.main import app
+from fhirapi.database import database, user_table  # noqa: E402
+from fhirapi.main import app  # noqa: E402
 from fhirapi.tests.helpers import create_post  # noqa: E402
 
 
